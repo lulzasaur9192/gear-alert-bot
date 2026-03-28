@@ -11,6 +11,8 @@ import {
     EmbedBuilder,
     ActionRowBuilder,
     StringSelectMenuBuilder,
+    ButtonBuilder,
+    ButtonStyle,
 } from 'discord.js';
 import { createLogger } from './logger.js';
 import { registerNotifier } from './price-checker.js';
@@ -185,10 +187,22 @@ async function handleAlert(interaction, userId, username) {
 
     const { allowed, count, limit } = canCreateAlert(user.id, user.tier);
     if (!allowed) {
-        await interaction.reply({
-            content: `Free tier limit of ${limit} alerts reached (${count} active). Use /remove or /upgrade.`,
-            ephemeral: true,
-        });
+        const limitEmbed = new EmbedBuilder()
+            .setColor(0xF39C12)
+            .setTitle('Alert Limit Reached')
+            .setDescription(`You have ${count}/${limit} alerts on the free tier.`)
+            .addFields(
+                { name: 'Want unlimited alerts?', value: 'Upgrade to the Reverb Music Gear API on RapidAPI for unlimited alerts, full price history, and priority checks.' },
+            );
+
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel('Upgrade on RapidAPI')
+                .setURL('https://rapidapi.com/lulzasaur9192/api/reverb-music-gear-listings?utm_source=discord&utm_medium=bot&utm_campaign=gear-limit-hit')
+                .setStyle(ButtonStyle.Link),
+        );
+
+        await interaction.reply({ embeds: [limitEmbed], components: [row], ephemeral: true });
         return;
     }
 
@@ -357,13 +371,22 @@ async function handleUpgrade(interaction, userId, username) {
     }
     const embed = new EmbedBuilder()
         .setColor(0xF39C12)
-        .setTitle('Upgrade to Paid Tier — $5/month')
+        .setTitle('Upgrade to Pro')
+        .setDescription('Get more from GearAlert Bot with a RapidAPI subscription.')
         .addFields(
-            { name: 'Free Tier', value: '- 3 active alerts\n- Price notifications' },
-            { name: 'Paid Tier ($5/mo)', value: '- Unlimited alerts\n- Full price history\n- Priority checks' },
-        )
-        .setFooter({ text: 'Payment integration coming soon! Contact @lulzasaur to upgrade.' });
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+            { name: 'Free Tier', value: '- 3 active alerts\n- Price notifications\n- 30-min price checks' },
+            { name: 'Pro ($9.99/mo)', value: '- Unlimited alerts\n- Full price history\n- Priority checks\n- 5,000 API requests/mo' },
+            { name: 'Ultra ($29.99/mo)', value: '- Everything in Pro\n- 25,000 API requests/mo\n- Bulk gear search' },
+        );
+
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setLabel('Subscribe on RapidAPI')
+            .setURL('https://rapidapi.com/lulzasaur9192/api/reverb-music-gear-listings?utm_source=discord&utm_medium=bot&utm_campaign=gear-upgrade-cmd')
+            .setStyle(ButtonStyle.Link),
+    );
+
+    await interaction.reply({ embeds: [embed], components: [row], ephemeral: true });
 }
 
 async function handleHelp(interaction) {
