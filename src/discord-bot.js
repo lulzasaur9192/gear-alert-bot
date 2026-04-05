@@ -189,7 +189,7 @@ export async function startDiscordBot() {
         const topgg = new TopggApi(topggToken);
         const postStats = async () => {
             try {
-                const serverCount = client.guilds.cache.size;
+                const serverCount = client.guilds.cache.size || 1;
                 await topgg.postStats({ serverCount });
                 log.info(`Top.gg: posted ${serverCount} servers`);
             } catch (err) {
